@@ -1,0 +1,75 @@
+<header>
+    <h1>CodingDojo Wall</h1>
+    <p>Welcome <%= session[:first_name] %></p>
+    <a href="logout">log off</a>
+</header>
+
+<hr>
+
+<div id="wrapper">
+    <h2>Post a message</h2>
+    <form action="/message_post" id="message_post" method="POST">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <input type="hidden" name="user_id" value="<%= session[:user_id] %>">
+        <textarea name="message" placeholder="Post a message"></textarea>
+        <input type="submit" value="Post a message">
+    </form>
+
+    <br>
+
+    <% @messages[:result].each do |message| %>
+        <div class="message">
+            <h3><%= message["message_sender"] %> - <%= message["created_at"].strftime('%m/%d/%Y %I:%M%p') %></h3>
+            <p><%= message["message"] %></p>
+
+            <% if message["user_id"] === session[:user_id] %>
+                <form action="/message_delete" id="message_delete" method="POST">
+                    <input type="hidden" name="_method" value="delete">
+                    <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                    <input type="hidden" name="message_id" value="<%= message["message_id"] %>">
+                    <input type="hidden" name="message_user_id" value="<%= message["user_id"] %>">
+                    <input type="submit" value="Delete a Message">
+                </form>
+            <% end %>
+        </div>
+
+        <% unless message["comment"].nil?
+            puts message["comment"]
+            comments = JSON.parse(message["comment"])
+            puts comments
+            comments.each do |id, value|
+                value["created_at"] = DateTime.parse(value["created_at"])
+                %>
+
+                <div class="comment">
+                    <h3> <%= value["comment_sender"] %> - <%= value["create_at"] %></h3>
+                    <p><%= value["comment"] %></p>
+
+                    <% if value["user_id"] === session[:user_id] %>
+                        <form action="/comment_delete" id="comment_delete"  method="POST">
+                            <input type="hidden" name="_method" value="delete">
+                            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                            <input type="hidden" name="comment_id" value="<%= id %>">
+                            <input type="hidden" name="comment_user_id" value="<%= value["user_id"] %>">
+                            <input type="submit" value="Delete a Comment">
+                        </form>
+                    <% end %>
+                </div>
+            <% end %>
+        <% end %>
+
+        <% unless message["message_id"].nil? %>
+            <div class="textcomment">
+                <form action="/comment_post" id="comment_post" method="POST">
+                    <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                    <input type="hidden" name="user_id" value="<%= session[:user_id] %>">
+                    <input type="hidden" name="message_id" value="<%= message["message_id"] %>">
+                    <textarea name="comment" placeholder="Post a comment"></textarea>
+                    <input type="submit" value="Post a comment">
+                </form>
+            </div>
+        <% end %>
+    <% end %>
+</div>
+
+
